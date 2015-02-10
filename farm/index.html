@@ -1,13 +1,22 @@
 <html>
     <head>
         <style>
-            .node > rect {
+            .node > rect.core {
                 fill: rgba(150, 180, 200, 255);
+            }
+            
+            .node > rect.stack {
+                fill: rgba(255, 0, 0, 0.5);
+            }
+            
+            .node > rect.load {
+                fill: rgba(0, 255, 0, 0.5);
             }
 
             .connection {
-                stroke: rgba(230, 190, 190, 100);
-                stroke-width: 5px;
+                stroke: rgba(220, 230, 240, 1.0);
+                stroke-width: 10px;
+                fill: none;
             }
         </style>
     </head>
@@ -22,9 +31,7 @@
                 offset = {x: 200, y: 200},
                 spacing = 150;
             
-            //
             // prepare
-            //
           
             var nodes = [
                 {x: 0, y: spacing / 2},
@@ -37,8 +44,9 @@
 
             nodes = nodes.map( function (node, i) {
                 node.id = i;
-                node.stack = [];
-                node.load = [];
+                node.stack = 0;
+                node.load = 0;
+                node.quorum = {};
                 node.connections = [];
                 return node;
             });
@@ -60,18 +68,16 @@
             connect(nodes[3], nodes[5]);
             connect(nodes[4], nodes[5]);
             
-            //
             // enter
-            //
 
             var svg = d3.select("body").append("svg")
                 .attr("width", width)
                 .attr("height", height);
 
             var line = d3.svg.line()
-                .interpolate("linear")
                 .x( function (d) { return d.x })
-                .y( function (d) { return d.y });
+                .y( function (d) { return d.y })
+                .interpolate("step");
 
             svg.selectAll(".connection")
                 .data(connections)
@@ -79,8 +85,8 @@
                 .append("path")
                     .classed("connection", true)
                     .attr("d", function (d) {
-                        var source = {x: d[0].x + offset.x + size, y: d[0].y + offset.y + size},
-                            target = {x: d[1].x + offset.x + size, y: d[1].y + offset.y + size};
+                        var source = {x: d[0].x + offset.x, y: d[0].y + offset.y},
+                            target = {x: d[1].x + offset.x, y: d[1].y + offset.y};
                         return line([source, target]);
                     });
 
@@ -95,10 +101,69 @@
 
             svg.selectAll(".node")
                 .append("rect")
+                    .classed("core", true)
                     .attr("width", size)
                     .attr("height", size)
-                    .attr("x", size / 2)
+                    .attr("x", -size / 2)
+                    .attr("y", -size / 2)
+                    .attr("rx", size / 18)
+                    .attr("ry", size / 18);
+
+            svg.selectAll(".node")
+                .append("rect")
+                    .classed("load", true)
+                    .attr("width", size / 6)
+                    .attr("height", 0)
+                    .attr("x", size / 4)
                     .attr("y", size / 2);
+                    
+            svg.selectAll(".node")
+                .append("rect")
+                    .classed("stack", true)
+                    .attr("width", size / 6)
+                    .attr("height", 0)
+                    .attr("x", -size / 4)
+                    .attr("y", size / 2);
+        
+            // 100 units of work...
+            // Schedule assignment to the leftmost node
+
+            var work = 200;
+            var assignment = setInterval(assign, 50);
+
+            function assign() {
+                if (work === 0)
+                    return clearInterval(assignment);
+                work -= 1;
+                nodes[0].stack += 1;
+                console.log(work);
+            };
+            
+            // distribute & compute the work!
+
+            function cycle() {
+            }
+
+            // update
+
+            var rendering = setInterval(render, 50);
+
+            function render() {
+                var update = svg.selectAll(".node")
+                    .data(nodes);
+
+                update.selectAll(".load")
+                    .attr("height", function (d) {
+                        return d.load * 1;
+                    });
+                    
+                update.selectAll(".stack")
+                    .attr("y", function (d) { return size / 2 - d.stack * 1; })
+                    .attr("height", function (d) { return d.stack * 1; });
+            };
+        
+
+
 
         </script>
     </body>
