@@ -28,8 +28,10 @@
         </style>
     </head>
     <body>
-        <h1>farm</h1>
-        <h4>distributed farm jobs emulation<h4>
+        <div class="container">
+            <h1>farm</h1>
+            <h3 class="primary">distributed farm jobs emulation<h3>
+        </div>
         <script src='../static/js/d3.min.js'></script>
         <script>
             var width = 1080,
@@ -84,7 +86,7 @@
             
             // enter
 
-            var svg = d3.select("body").append("svg")
+            var svg = d3.select("body > .container").append("svg")
                 .attr("width", width)
                 .attr("height", height);
 
