@@ -1,7 +1,105 @@
 <html>
-    <head></head>
+    <head>
+        <style>
+            .node > rect {
+                fill: rgba(150, 180, 200, 255);
+            }
+
+            .connection {
+                stroke: rgba(230, 190, 190, 100);
+                stroke-width: 5px;
+            }
+        </style>
+    </head>
     <body>
         <h1>farm</h1>
-        <h4>farm jobs emulation<h4>
+        <h4>distributed farm jobs emulation<h4>
+        <script src='../static/js/d3.min.js'></script>
+        <script>
+            var width = 960,
+                height = 540,
+                size = 80,
+                offset = {x: 200, y: 200},
+                spacing = 150;
+            
+            //
+            // prepare
+            //
+          
+            var nodes = [
+                {x: 0, y: spacing / 2},
+                {x: spacing, y: 0},
+                {x: spacing, y: spacing},
+                {x: spacing * 2, y: 0},
+                {x: spacing * 2, y: spacing},
+                {x: spacing * 3, y: spacing / 2}
+            ];
+
+            nodes = nodes.map( function (node, i) {
+                node.id = i;
+                node.stack = [];
+                node.load = [];
+                node.connections = [];
+                return node;
+            });
+
+            var connections = [];
+
+            function connect(a, b) {
+                a.connections.push(b);
+                b.connections.push(a);
+                connections.push([a, b]);
+            }
+
+            connect(nodes[0], nodes[1]);
+            connect(nodes[0], nodes[2]);
+            connect(nodes[1], nodes[2]);
+            connect(nodes[1], nodes[3]);
+            connect(nodes[2], nodes[4]);
+            connect(nodes[3], nodes[4]);
+            connect(nodes[3], nodes[5]);
+            connect(nodes[4], nodes[5]);
+            
+            //
+            // enter
+            //
+
+            var svg = d3.select("body").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            var line = d3.svg.line()
+                .interpolate("linear")
+                .x( function (d) { return d.x })
+                .y( function (d) { return d.y });
+
+            svg.selectAll(".connection")
+                .data(connections)
+                .enter()
+                .append("path")
+                    .classed("connection", true)
+                    .attr("d", function (d) {
+                        var source = {x: d[0].x + offset.x + size, y: d[0].y + offset.y + size},
+                            target = {x: d[1].x + offset.x + size, y: d[1].y + offset.y + size};
+                        return line([source, target]);
+                    });
+
+            svg.selectAll(".node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                    .classed("node", true)
+                    .attr("transform", function (d) {
+                        return "translate(" + (d.x + offset.x) + "," + (d.y + offset.y) + ")";
+                    });
+
+            svg.selectAll(".node")
+                .append("rect")
+                    .attr("width", size)
+                    .attr("height", size)
+                    .attr("x", size / 2)
+                    .attr("y", size / 2);
+
+        </script>
     </body>
 </html>
