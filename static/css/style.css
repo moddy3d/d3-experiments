@@ -1,0 +1,9 @@
+@font-face {
+    font-family: "Roboto-Thin";
+    src: url("/static/fonts/Roboto-Thin.ttf");
+}
+
+body {
+    font-family: "Roboto-Thin", serif;
+    text-align: center;
+}
