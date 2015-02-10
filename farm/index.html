@@ -2,20 +2,26 @@
     <head>
         <style>
             .node > rect.core {
-                fill: rgba(150, 180, 200, 255);
+                fill: rgba(240, 240, 240, 1.0);
+                stroke: rgba(190, 190, 200, 0.5);
+            }
+
+            .node:hover > rect.core {
+                stroke: rgba(190, 190, 200, 1.0);
+                transition: all 100ms linear;
             }
             
-            .node > rect.stack {
+            .load {
                 fill: rgba(255, 0, 0, 0.5);
             }
             
-            .node > rect.load {
+            .done {
                 fill: rgba(0, 255, 0, 0.5);
             }
 
             .connection {
-                stroke: rgba(220, 230, 240, 1.0);
-                stroke-width: 10px;
+                stroke: rgba(220, 210, 220, 1.0);
+                stroke-width: 1px;
                 fill: none;
             }
         </style>
@@ -25,11 +31,12 @@
         <h4>distributed farm jobs emulation<h4>
         <script src='../static/js/d3.min.js'></script>
         <script>
-            var width = 960,
+            var width = 1080,
                 height = 540,
                 size = 80,
                 offset = {x: 200, y: 200},
-                spacing = 150;
+                spacing = 150,
+                QUORUM_LIMIT = 0.5;
             
             // prepare
           
@@ -39,13 +46,16 @@
                 {x: spacing, y: spacing},
                 {x: spacing * 2, y: 0},
                 {x: spacing * 2, y: spacing},
-                {x: spacing * 3, y: spacing / 2}
+                {x: spacing * 3, y: spacing / 2},
+                {x: spacing * 3, y: -spacing / 2},
+                {x: spacing * 3, y: 3 * spacing / 2},
+                {x: spacing * 4, y: spacing / 2}
             ];
 
             nodes = nodes.map( function (node, i) {
                 node.id = i;
-                node.stack = 0;
                 node.load = 0;
+                node.done = 0;
                 node.quorum = {};
                 node.connections = [];
                 return node;
@@ -67,6 +77,9 @@
             connect(nodes[3], nodes[4]);
             connect(nodes[3], nodes[5]);
             connect(nodes[4], nodes[5]);
+            connect(nodes[3], nodes[6]);
+            connect(nodes[4], nodes[7]);
+            connect(nodes[5], nodes[8]);
             
             // enter
 
@@ -111,38 +124,101 @@
 
             svg.selectAll(".node")
                 .append("rect")
-                    .classed("load", true)
-                    .attr("width", size / 6)
+                    .classed("done", true)
+                    .attr("width", size / 9)
                     .attr("height", 0)
-                    .attr("x", size / 4)
+                    .attr("x", size / 8)
                     .attr("y", size / 2);
                     
             svg.selectAll(".node")
                 .append("rect")
-                    .classed("stack", true)
-                    .attr("width", size / 6)
+                    .classed("load", true)
+                    .attr("width", size / 9)
                     .attr("height", 0)
                     .attr("x", -size / 4)
                     .attr("y", size / 2);
-        
-            // 100 units of work...
-            // Schedule assignment to the leftmost node
 
-            var work = 200;
+            // 100 units of work...
+
+            var work = 200,
+                done = 0;
+
+            svg.selectAll("#remaining-work")
+                .data([work])
+                .enter()
+                .append("rect")
+                    .attr("id", "remaining-work")
+                    .classed("load", true)
+                    .attr("width", size / 9)
+                    .attr("height", function (d) { return d })
+                    .attr("x", offset.x / 3)
+                    .attr("y", function (d) { return offset.y * 2 + d });
+                    
+            svg.selectAll("#finished-work")
+                .data([done])
+                .enter()
+                .append("rect")
+                    .attr("id", "finished-work")
+                    .classed("done", true)
+                    .attr("width", size / 9)
+                    .attr("height", function (d) { return d })
+                    .attr("x", offset.x / 3 + (5.5 * spacing))
+                    .attr("y", function (d) { return offset.y * 2 + d });
+            
+            // Schedule assignment to the leftmost node
             var assignment = setInterval(assign, 50);
 
-            function assign() {
-                if (work === 0)
-                    return clearInterval(assignment);
-                work -= 1;
-                nodes[0].stack += 1;
-                console.log(work);
-            };
-            
-            // distribute & compute the work!
+            // gossip
 
-            function cycle() {
+            setInterval(function () { gossip(nodes[0]); }, 100);
+            setInterval(function () { gossip(nodes[1]); }, 90);
+            setInterval(function () { gossip(nodes[2]); }, 80);
+            setInterval(function () { gossip(nodes[3]); }, 140);
+            setInterval(function () { gossip(nodes[4]); }, 190);
+            setInterval(function () { gossip(nodes[5]); }, 150);
+            setInterval(function () { gossip(nodes[6]); }, 170);
+            setInterval(function () { gossip(nodes[7]); }, 160);
+            setInterval(function () { gossip(nodes[8]); }, 120);
+                
+            function gossip(node) {
+
+                // Broadcast
+                node.quorum[node.id] = {id: node.id, load: node.load, reference: node};
+
+                // Discover
+                node.connections.forEach( function (neighbor) {
+                    for (var k in neighbor.quorum) {
+                        var value = neighbor.quorum[k];
+                        if (value.id !== node.id) 
+                            node.quorum[value.id] = {id: value.id, load: value.load, reference: value.reference};
+                    }
+                });
+
+                // Distribution
+                var quorumCount = Object.keys(node.quorum).length;
+                if (quorumCount > nodes.length * QUORUM_LIMIT) {
+                    for (var k in node.quorum) {
+                        if (node.load > node.quorum[k].load) {
+                            if (node.load > 0) {
+                                node.load -= 1;
+                                node.quorum[k].reference.load += 1; 
+                            }
+                        }
+                    }
+                }
             }
+
+            // compute
+            nodes.forEach( function (node) {
+                setInterval(function () { compute(node); }, 1000);
+            }); 
+
+            function compute(node) {
+                if (node.load > 0) {
+                    node.load -= 1;
+                    node.done += 1;
+                }
+            };
 
             // update
 
@@ -152,19 +228,34 @@
                 var update = svg.selectAll(".node")
                     .data(nodes);
 
-                update.selectAll(".load")
-                    .attr("height", function (d) {
-                        return d.load * 1;
-                    });
+                update.selectAll(".node .done")
+                    .attr("y", function (d) { return size / 2 - d.done * 1; })
+                    .attr("height", function (d) { return d.done * 1; });
                     
-                update.selectAll(".stack")
-                    .attr("y", function (d) { return size / 2 - d.stack * 1; })
-                    .attr("height", function (d) { return d.stack * 1; });
+                update.selectAll(".node .load")
+                    .attr("y", function (d) { return size / 2 - d.load * 1; })
+                    .attr("height", function (d) { return d.load * 1; });
+
+                svg.selectAll("#remaining-work")
+                    .data([work])
+                        .attr("height", function (d) { return d; })
+                        .attr("y", function (d) { return offset.y * 2 - d; })
+                        
+                svg.selectAll("#finished-work")
+                    .data([done])
+                        .attr("height", function (d) { return d; })
+                        .attr("y", function (d) { return offset.y * 2 - d; })
             };
-        
-
-
-
+            
+            function assign() {
+                if (work === 0) {
+                    clearInterval(assignment);
+                }
+                work -= 1;
+                nodes[0].load += 1;
+                done += 1;
+            };
+            
         </script>
     </body>
 </html>
