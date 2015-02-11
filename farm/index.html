@@ -11,13 +11,17 @@
                 stroke: rgba(190, 190, 200, 1.0);
                 transition: all 100ms linear;
             }
-            
-            .load {
+
+            .unassigned {
                 fill: rgba(255, 0, 0, 0.5);
             }
             
-            .done {
-                fill: rgba(0, 255, 0, 0.5);
+            .load {
+                fill: rgba(0, 125, 255, 0.5);
+            }
+            
+            .complete {
+                fill: rgba(55, 255, 55, 0.5);
             }
 
             .connection {
@@ -34,10 +38,11 @@
         </div>
         <script src='../static/js/d3.min.js'></script>
         <script>
+
             var width = 1080,
                 height = 540,
                 size = 80,
-                offset = {x: 200, y: 200},
+                offset = {x: 375, y: 200},
                 spacing = 150,
                 QUORUM_LIMIT = 0.5;
             
@@ -58,7 +63,7 @@
             nodes = nodes.map( function (node, i) {
                 node.id = i;
                 node.load = 0;
-                node.done = 0;
+                node.complete = 0;
                 node.quorum = {};
                 node.connections = [];
                 return node;
@@ -127,7 +132,7 @@
 
             svg.selectAll(".node")
                 .append("rect")
-                    .classed("done", true)
+                    .classed("complete", true)
                     .attr("width", size / 9)
                     .attr("height", 0)
                     .attr("x", size / 8)
@@ -141,31 +146,43 @@
                     .attr("x", -size / 4)
                     .attr("y", size / 2);
 
-            // 100 units of work...
+            // 400 units of work...
 
-            var work = 200,
-                done = 0;
+            var unassigned = 300,
+                assigned = 0,
+                complete = 0;
 
-            svg.selectAll("#remaining-work")
-                .data([work])
+            svg.selectAll("#unassigned-work")
+                .data([unassigned])
                 .enter()
                 .append("rect")
-                    .attr("id", "remaining-work")
+                    .attr("id", "unassigned-work")
+                    .classed("unassigned", true)
+                    .attr("width", size / 9)
+                    .attr("height", function (d) { return d })
+                    .attr("x", offset.x - 300)
+                    .attr("y", function (d) { return offset.y * 2 + d });
+                    
+            svg.selectAll("#assigned-work")
+                .data([assigned])
+                .enter()
+                .append("rect")
+                    .attr("id", "assigned-work")
                     .classed("load", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x / 3)
+                    .attr("x", offset.x - 250)
                     .attr("y", function (d) { return offset.y * 2 + d });
                     
-            svg.selectAll("#finished-work")
-                .data([done])
+            svg.selectAll("#complete-work")
+                .data([complete])
                 .enter()
                 .append("rect")
-                    .attr("id", "finished-work")
-                    .classed("done", true)
+                    .attr("id", "complete-work")
+                    .classed("complete", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x / 3 + (5.5 * spacing))
+                    .attr("x", offset.x - 200)
                     .attr("y", function (d) { return offset.y * 2 + d });
             
             // Schedule assignment to the leftmost node
@@ -213,13 +230,15 @@
 
             // compute
             nodes.forEach( function (node) {
-                setInterval(function () { compute(node); }, 1000);
+                setInterval(function () { compute(node); }, 500);
             }); 
 
             function compute(node) {
                 if (node.load > 0) {
                     node.load -= 1;
-                    node.done += 1;
+                    node.complete += 1;
+                    assigned -= 1;
+                    complete += 1;
                 }
             };
 
@@ -231,32 +250,39 @@
                 var update = svg.selectAll(".node")
                     .data(nodes);
 
-                update.selectAll(".node .done")
-                    .attr("y", function (d) { return size / 2 - d.done * 1; })
-                    .attr("height", function (d) { return d.done * 1; });
+                update.selectAll(".node .complete")
+                    .attr("y", function (d) { return size / 2 - d.complete * 1; })
+                    .attr("height", function (d) { return d.complete * 1; });
                     
                 update.selectAll(".node .load")
                     .attr("y", function (d) { return size / 2 - d.load * 1; })
                     .attr("height", function (d) { return d.load * 1; });
 
-                svg.selectAll("#remaining-work")
-                    .data([work])
+                svg.selectAll("#unassigned-work")
+                    .data([unassigned])
                         .attr("height", function (d) { return d; })
                         .attr("y", function (d) { return offset.y * 2 - d; })
                         
-                svg.selectAll("#finished-work")
-                    .data([done])
+                svg.selectAll("#assigned-work")
+                    .data([assigned])
+                    .transition()
+                        .attr("height", function (d) { return d; })
+                        .attr("y", function (d) { return offset.y * 2 - d; })
+                        
+                svg.selectAll("#complete-work")
+                    .data([complete])
+                    .transition()
                         .attr("height", function (d) { return d; })
                         .attr("y", function (d) { return offset.y * 2 - d; })
             };
             
             function assign() {
-                if (work === 0) {
+                if (unassigned === 0) {
                     clearInterval(assignment);
                 }
-                work -= 1;
+                unassigned -= 1;
+                assigned += 1;
                 nodes[0].load += 1;
-                done += 1;
             };
             
         </script>
