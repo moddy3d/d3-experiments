@@ -14,7 +14,8 @@
 }
 
 html, body {
-    font-family: "OpenSans-Light", serif;
+    font-family: "OpenSans-Light", "OpenSans-Regular", serif;
+    font-weight: lighter;
     color: #555;
 }
 
