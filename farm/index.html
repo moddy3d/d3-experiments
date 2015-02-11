@@ -33,17 +33,18 @@
     </head>
     <body>
         <div class="container">
-            <h1>farm</h1>
-            <h3 class="primary">distributed farm jobs emulation<h3>
+            <div>wed feb 10 2015</div>
+            <h1 class="title">farm</h1>
+            <div class='lead'>distributed farm jobs emulation</div>
         </div>
         <script src='../static/js/d3.min.js'></script>
         <script>
 
-            var width = 1080,
+            var width = 960,
                 height = 540,
                 size = 80,
-                offset = {x: 375, y: 200},
-                spacing = 150,
+                offset = {x: 325, y: 200},
+                spacing = 130,
                 QUORUM_LIMIT = 0.5;
             
             // prepare
@@ -160,7 +161,7 @@
                     .classed("unassigned", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 300)
+                    .attr("x", offset.x - 250)
                     .attr("y", function (d) { return offset.y * 2 + d });
                     
             svg.selectAll("#assigned-work")
@@ -171,7 +172,7 @@
                     .classed("load", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 250)
+                    .attr("x", offset.x - 200)
                     .attr("y", function (d) { return offset.y * 2 + d });
                     
             svg.selectAll("#complete-work")
@@ -182,7 +183,7 @@
                     .classed("complete", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 200)
+                    .attr("x", offset.x - 150)
                     .attr("y", function (d) { return offset.y * 2 + d });
             
             // Schedule assignment to the leftmost node
