@@ -16,12 +16,17 @@
                 fill: rgba(255, 0, 0, 0.5);
             }
             
-            .load {
+            .assigned {
                 fill: rgba(0, 125, 255, 0.5);
             }
             
-            .complete {
+            .completed {
                 fill: rgba(55, 255, 55, 0.5);
+            }
+
+            .label {
+                font: 14px Helvetica, Arial;
+                text-anchor: middle;
             }
 
             .connection {
@@ -49,9 +54,9 @@
 
             var width = 960,
                 height = 540,
-                size = 80,
+                size = 50,
                 offset = {x: 325, y: 200},
-                spacing = 130,
+                spacing = 100,
                 QUORUM_LIMIT = 0.5;
             
             // prepare
@@ -70,8 +75,8 @@
 
             nodes = nodes.map( function (node, i) {
                 node.id = i;
-                node.load = 0;
-                node.complete = 0;
+                node.assigned = 0;
+                node.completed = 0;
                 node.quorum = {};
                 node.connections = [];
                 return node;
@@ -140,7 +145,7 @@
 
             svg.selectAll(".node")
                 .append("rect")
-                    .classed("complete", true)
+                    .classed("completed", true)
                     .attr("width", size / 9)
                     .attr("height", 0)
                     .attr("x", size / 8)
@@ -148,7 +153,7 @@
                     
             svg.selectAll(".node")
                 .append("rect")
-                    .classed("load", true)
+                    .classed("assigned", true)
                     .attr("width", size / 9)
                     .attr("height", 0)
                     .attr("x", -size / 4)
@@ -158,40 +163,82 @@
 
             var unassigned = 300,
                 assigned = 0,
-                complete = 0;
+                completed = 0;
 
             svg.selectAll("#unassigned-work")
                 .data([unassigned])
                 .enter()
-                .append("rect")
+                .append("g")
                     .attr("id", "unassigned-work")
+                    .attr("transform", function (d) { 
+                        return "translate(" + (offset.x - 225) + "," +
+                            (offset.y * 2 ) + ")";
+                    })
+                .append("g")
+                    .attr("transform", function (d) { 
+                        return "scale(1,-1)";
+                    })
+                .append("rect")
                     .classed("unassigned", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 250)
-                    .attr("y", function (d) { return offset.y * 2 + d });
+
+            svg.select("#unassigned-work")
+                .append("g")
+                    .attr("transform", "translate(0 40)rotate(-45 0 0)")
+                .append("text")
+                    .classed("label", true)
+                    .text("Unassigned");
                     
             svg.selectAll("#assigned-work")
                 .data([assigned])
                 .enter()
-                .append("rect")
+                .append("g")
                     .attr("id", "assigned-work")
-                    .classed("load", true)
-                    .attr("width", size / 9)
-                    .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 200)
-                    .attr("y", function (d) { return offset.y * 2 + d });
-                    
-            svg.selectAll("#complete-work")
-                .data([complete])
-                .enter()
+                    .attr("transform", function (d) { 
+                        return "translate(" + (offset.x - 175) + "," +
+                            (offset.y * 2 ) + ")";
+                    })
+                .append("g")
+                    .attr("transform", function (d) { 
+                        return "scale(1,-1)";
+                    })
                 .append("rect")
-                    .attr("id", "complete-work")
-                    .classed("complete", true)
+                    .classed("assigned", true)
                     .attr("width", size / 9)
                     .attr("height", function (d) { return d })
-                    .attr("x", offset.x - 150)
-                    .attr("y", function (d) { return offset.y * 2 + d });
+
+            svg.select("#assigned-work")
+                .append("g")
+                    .attr("transform", "translate(0 40)rotate(-45 0 0)")
+                .append("text")
+                    .classed("label", true)
+                    .text("Assigned");
+                    
+            svg.selectAll("#completed-work")
+                .data([completed])
+                .enter()
+                .append("g")
+                    .attr("id", "completed-work")
+                    .attr("transform", function (d) { 
+                        return "translate(" + (offset.x - 125) + "," +
+                            (offset.y * 2 ) + ")";
+                    })
+                .append("g")
+                    .attr("transform", function (d) { 
+                        return "scale(1,-1)";
+                    })
+                .append("rect")
+                    .classed("completed", true)
+                    .attr("width", size / 9)
+                    .attr("height", function (d) { return d })
+
+            svg.select("#completed-work")
+                .append("g")
+                    .attr("transform", "translate(0 40)rotate(-45 0 0)")
+                .append("text")
+                    .classed("label", true)
+                    .text("Completed");
             
             // Schedule assignment to the leftmost node
             var assignment = setInterval(assign, 50);
@@ -211,14 +258,14 @@
             function gossip(node) {
 
                 // Broadcast
-                node.quorum[node.id] = {id: node.id, load: node.load, reference: node};
+                node.quorum[node.id] = {id: node.id, assigned: node.assigned, reference: node};
 
                 // Discover
                 node.connections.forEach( function (neighbor) {
                     for (var k in neighbor.quorum) {
                         var value = neighbor.quorum[k];
                         if (value.id !== node.id) 
-                            node.quorum[value.id] = {id: value.id, load: value.load, reference: value.reference};
+                            node.quorum[value.id] = {id: value.id, assigned: value.assigned, reference: value.reference};
                     }
                 });
 
@@ -226,10 +273,10 @@
                 var quorumCount = Object.keys(node.quorum).length;
                 if (quorumCount > nodes.length * QUORUM_LIMIT) {
                     for (var k in node.quorum) {
-                        if (node.load > node.quorum[k].load) {
-                            if (node.load > 0) {
-                                node.load -= 1;
-                                node.quorum[k].reference.load += 1; 
+                        if (node.assigned > node.quorum[k].assigned) {
+                            if (node.assigned > 0) {
+                                node.assigned -= 1;
+                                node.quorum[k].reference.assigned += 1; 
                             }
                         }
                     }
@@ -242,11 +289,11 @@
             }); 
 
             function compute(node) {
-                if (node.load > 0) {
-                    node.load -= 1;
-                    node.complete += 1;
+                if (node.assigned > 0) {
+                    node.assigned -= 1;
+                    node.completed += 1;
                     assigned -= 1;
-                    complete += 1;
+                    completed += 1;
                 }
             };
 
@@ -258,30 +305,28 @@
                 var update = svg.selectAll(".node")
                     .data(nodes);
 
-                update.selectAll(".node .complete")
-                    .attr("y", function (d) { return size / 2 - d.complete * 1; })
-                    .attr("height", function (d) { return d.complete * 1; });
+                update.selectAll(".node .completed")
+                    .attr("y", function (d) { return size / 2 - d.completed * 1; })
+                    .attr("height", function (d) { return d.completed * 1; });
                     
-                update.selectAll(".node .load")
-                    .attr("y", function (d) { return size / 2 - d.load * 1; })
-                    .attr("height", function (d) { return d.load * 1; });
+                update.selectAll(".node .assigned")
+                    .attr("y", function (d) { return size / 2 - d.assigned * 1; })
+                    .attr("height", function (d) { return d.assigned * 1; });
 
                 svg.selectAll("#unassigned-work")
                     .data([unassigned])
+                    .select("rect")
                         .attr("height", function (d) { return d; })
-                        .attr("y", function (d) { return offset.y * 2 - d; })
                         
                 svg.selectAll("#assigned-work")
                     .data([assigned])
-                    .transition()
+                    .select("rect")
                         .attr("height", function (d) { return d; })
-                        .attr("y", function (d) { return offset.y * 2 - d; })
                         
-                svg.selectAll("#complete-work")
-                    .data([complete])
-                    .transition()
+                svg.selectAll("#completed-work")
+                    .data([completed])
+                    .select("rect")
                         .attr("height", function (d) { return d; })
-                        .attr("y", function (d) { return offset.y * 2 - d; })
             };
             
             function assign() {
@@ -290,7 +335,7 @@
                 }
                 unassigned -= 1;
                 assigned += 1;
-                nodes[0].load += 1;
+                nodes[0].assigned += 1;
             };
             
         </script>
