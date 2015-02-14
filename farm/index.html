@@ -54,9 +54,9 @@
 
             var width = 960,
                 height = 540,
-                size = 50,
+                size = 40,
                 offset = {x: 325, y: 200},
-                spacing = 100,
+                spacing = 75,
                 QUORUM_LIMIT = 0.5;
             
             // prepare
@@ -70,7 +70,13 @@
                 {x: spacing * 3, y: spacing / 2},
                 {x: spacing * 3, y: -spacing / 2},
                 {x: spacing * 3, y: 3 * spacing / 2},
-                {x: spacing * 4, y: spacing / 2}
+                {x: spacing * 4, y: spacing / 2},
+                {x: spacing * 5, y: spacing / 2},
+                {x: spacing * 5, y: -spacing / 2},
+                {x: spacing * 5, y: 3 * spacing / 2},
+                {x: spacing * 6, y: 0},
+                {x: spacing * 6, y: spacing},
+                {x: spacing * 7, y: spacing / 2},
             ];
 
             nodes = nodes.map( function (node, i) {
@@ -91,16 +97,19 @@
             }
 
             connect(nodes[0], nodes[1]);
-            connect(nodes[0], nodes[2]);
-            connect(nodes[1], nodes[2]);
+            connect(nodes[0], nodes[2]); connect(nodes[1], nodes[2]);
             connect(nodes[1], nodes[3]);
-            connect(nodes[2], nodes[4]);
-            connect(nodes[3], nodes[4]);
-            connect(nodes[3], nodes[5]);
-            connect(nodes[4], nodes[5]);
+            connect(nodes[2], nodes[4]); connect(nodes[3], nodes[4]);
+            connect(nodes[3], nodes[5]); connect(nodes[4], nodes[5]);
             connect(nodes[3], nodes[6]);
             connect(nodes[4], nodes[7]);
             connect(nodes[5], nodes[8]);
+            connect(nodes[8], nodes[9]);
+            connect(nodes[9], nodes[10]);
+            connect(nodes[9], nodes[11]);
+            connect(nodes[9], nodes[12]); connect(nodes[10], nodes[12]);
+            connect(nodes[9], nodes[13]); connect(nodes[11], nodes[13]);
+            connect(nodes[12], nodes[14]); connect(nodes[13], nodes[14]);
             
             // enter
 
@@ -244,17 +253,11 @@
             var assignment = setInterval(assign, 50);
 
             // gossip
+            
+            nodes.forEach( function (node) {
+                setInterval(function () { gossip(node); }, Math.floor(Math.random() * (200 - 190)) + 190);
+            }); 
 
-            setInterval(function () { gossip(nodes[0]); }, 100);
-            setInterval(function () { gossip(nodes[1]); }, 90);
-            setInterval(function () { gossip(nodes[2]); }, 80);
-            setInterval(function () { gossip(nodes[3]); }, 140);
-            setInterval(function () { gossip(nodes[4]); }, 190);
-            setInterval(function () { gossip(nodes[5]); }, 150);
-            setInterval(function () { gossip(nodes[6]); }, 170);
-            setInterval(function () { gossip(nodes[7]); }, 160);
-            setInterval(function () { gossip(nodes[8]); }, 120);
-                
             function gossip(node) {
 
                 // Broadcast
@@ -284,8 +287,9 @@
             }
 
             // compute
+
             nodes.forEach( function (node) {
-                setInterval(function () { compute(node); }, 500);
+                setInterval(function () { compute(node); }, 800);
             }); 
 
             function compute(node) {
