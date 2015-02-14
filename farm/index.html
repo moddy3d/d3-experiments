@@ -4,12 +4,7 @@
         <style>
             .node > rect.core {
                 fill: rgba(240, 240, 240, 1.0);
-                stroke: rgba(190, 190, 200, 0.5);
-            }
-
-            .node:hover > rect.core {
-                stroke: rgba(190, 190, 200, 1.0);
-                transition: all 100ms linear;
+                stroke: rgba(190, 190, 200, 0.3);
             }
 
             .unassigned {
@@ -139,6 +134,7 @@
                 .enter()
                 .append("g")
                     .classed("node", true)
+                    .attr("id", function (d) { return "node-" + d.id })
                     .attr("transform", function (d) {
                         return "translate(" + (d.x + offset.x) + "," + (d.y + offset.y) + ")";
                     });
@@ -299,6 +295,11 @@
                     node.completed += 1;
                     assigned -= 1;
                     completed += 1;
+                    svg.select("#node-" + node.id + " rect.core")
+                        .style("stroke", "rgba(0, 255, 0, 1.0)")
+                        .transition()
+                        .duration(50)
+                        .style("stroke", "rgba(190, 190, 200, 1.0)")
                 }
             };
 
@@ -341,6 +342,8 @@
                 unassigned -= 1;
                 assigned += 1;
                 nodes[0].assigned += 1;
+                svg.select("#node-0 rect.core")
+                    .style("stroke", "rgba(0, 125, 255, 1.0)");
             };
             
         </script>
