@@ -37,6 +37,12 @@
             <div class='date'>tues feb 10 2015</div>
             <h1 class="title">farm</h1>
             <div class='lead'>distributed farm jobs emulation</div>
+            <div id='description'>
+                Farm systems are efficient when the work is well distributed across all available nodes.
+                <br/>
+                A simplified implementation of a de-centralized system is offered here where work is assigned
+                to one node and distributed across the network.
+            </div>
         </div>
         <script src='../static/js/d3.min.js'></script>
         <script>
@@ -93,7 +99,7 @@
             
             // enter
 
-            var svg = d3.select("body > .container").append("svg")
+            var svg = d3.select("body > .container").insert("svg", "#description")
                 .attr("width", width)
                 .attr("height", height);
 
