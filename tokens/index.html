@@ -3,7 +3,7 @@
         <link href="../static/css/style.css" rel="stylesheet">
         <style>
             text {
-                font: 11px helvetica;
+                font: bold 11px Helvetica;
             }
 
             .node > rect {
@@ -53,6 +53,11 @@
             <div class='lead'>documents being tokenized by a search engine</div>
             <div id='description'>
                 A document goes through several transformations when it is pushed into a search engine.
+                <br/>
+                <br/>
+                For illustration purposes, a piece of string:
+                <pre><\strong>A **Search Engine** is -SofTwArE- USED to search INFORMATION...<\/strong></pre>
+                is pushed down the indexer where it is first stripped of HTML tags and symbols, then tokenized by whitespace.  A lowercase filter is then applied to all the tokens.
             </div>
         </div>
         <script src='../static/js/d3.min.js'></script>
