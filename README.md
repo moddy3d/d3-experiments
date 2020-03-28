@@ -1,3 +1,5 @@
-# d3-experiments
+# D3Experiments
 
-check out the <a href='http://moddy3d.github.io/d3-experiments'>experiments</a>.
+Collection of data visualisation experiments with D3js.
+
+check out the <a href='http://moddyz.github.io/D3Experiments'>experiments</a>.
