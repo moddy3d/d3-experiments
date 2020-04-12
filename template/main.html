@@ -8,11 +8,11 @@
             <div class="line"></div>
             <div>A collection of data visualisation experiments using D3js.</div>
             <div id='experiments'>
-
+{% for experiment in context.experiments %}
                 <div class='experiment'>
-                    <a href="experiments/linearFunction">Linear Function</a>
+                    <a href="experiments/{{ experiment.name }}">{{ experiment.title }}</a>
                 </div>
-
+{% endfor %}
             </div>
             <div class="line"></div>
         </div>
