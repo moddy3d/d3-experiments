@@ -1,21 +1,23 @@
-var width = 960;
-var height = 540;
-var margin = {x : 30, y : 30};
+// SVG Dimensions.
+var margin = {left : 30, right : 30, top : 30, bottom : 30};
+var width = 960 - margin.left - margin.right;
+var height = 540 - margin.top - margin.bottom;
 
+// Data set.
 var data = [
   {x : -1, y : -1},
   {x : 1, y : 1},
 ];
 
-// Main SVG container.
+// Create main SVG container.
 var svg = d3.select('#content')
               .append('svg')
-              .attr('width', width)
-              .attr('height', height);
+              .attr('width', width + margin.left + margin.right)
+              .attr('height', height + margin.top + margin.bottom);
 
-// Main transform.
-var g = svg.append('g').attr('transform',
-                             'translate(' + margin.x + ',' + margin.y + ')');
+// Top-level transfor, to apply the margin(s).
+var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' +
+                                              margin.top + ')');
 
 // Create the Y-axis.
 var yScaleLinear = d3.scaleLinear()
@@ -23,11 +25,10 @@ var yScaleLinear = d3.scaleLinear()
                          d3.min(data, function(d) { return d.y; }),
                          d3.max(data, function(d) { return d.y; })
                        ])
-                       .range([ height - margin.y * 2, 0 ]);
+                       .range([ height, 0 ]);
 
 g.append('g')
-    .attr('transform',
-          'translate(' + (width - margin.x * 2) / 2 + ',' + 0 + ')')
+    .attr('transform', 'translate(' + (width) / 2 + ',' + 0 + ')')
     .call(d3.axisLeft(yScaleLinear));
 
 // Create the X-axis.
@@ -36,11 +37,10 @@ var xScaleLinear = d3.scaleLinear()
                          d3.min(data, function(d) { return d.x; }),
                          d3.max(data, function(d) { return d.x; })
                        ])
-                       .range([ 0, width - margin.x * 2 ]);
+                       .range([ 0, width ]);
 
 g.append('g')
-    .attr('transform',
-          'translate(' + 0 + ',' + (height - margin.y * 2) / 2 + ')')
+    .attr('transform', 'translate(' + 0 + ',' + height / 2 + ')')
     .call(d3.axisBottom(xScaleLinear));
 
 // Draw the line
