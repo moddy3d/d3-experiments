@@ -20,7 +20,7 @@ var g = svg.append('g').attr('transform',
 // Create the Y-axis.
 var yScaleLinear = d3.scaleLinear()
                        .domain([
-                         d3.min(data, function(d) { return d.y }),
+                         d3.min(data, function(d) { return d.y; }),
                          d3.max(data, function(d) { return d.y; })
                        ])
                        .range([ height - margin.y * 2, 0 ]);
@@ -33,11 +33,22 @@ g.append('g')
 // Create the X-axis.
 var xScaleLinear = d3.scaleLinear()
                        .domain([
-                         d3.min(data, function(d) { return d.x }),
+                         d3.min(data, function(d) { return d.x; }),
                          d3.max(data, function(d) { return d.x; })
                        ])
                        .range([ 0, width - margin.x * 2 ]);
 
 g.append('g')
-    .attr('transform', 'translate(' + 0 + ',' + (height - margin.y * 2) + ')')
+    .attr('transform',
+          'translate(' + 0 + ',' + (height - margin.y * 2) / 2 + ')')
     .call(d3.axisBottom(xScaleLinear));
+
+// Draw the line
+g.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+                   .x(function(d) { return xScaleLinear(d.x); })
+                   .y(function(d) { return yScaleLinear(d.y); }));
