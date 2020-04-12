@@ -106,7 +106,7 @@ def GenerateExperiments():
 
         contentPath = os.path.join(experimentDir, _EXPERIMENT_CONTENT_FILE)
         with open(contentPath, 'r') as contentFile:
-            context["content"] = contentFile.read()
+            context["content"] = contentFile.read().strip()
 
         # Write out index document.
         document = GenerateDocument(experimentTemplatePath, context)
