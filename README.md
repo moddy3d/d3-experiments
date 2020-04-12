@@ -2,4 +2,4 @@
 
 Collection of data visualisation experiments with D3js.
 
-check out the <a href='http://moddyz.github.io/D3Experiments'>experiments</a>.
+<a href='http://moddyz.github.io/D3Experiments'>Check out the Github hosted page.</a>.
