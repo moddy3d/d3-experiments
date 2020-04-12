@@ -20,6 +20,7 @@ var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' +
                                               margin.top + ')');
 
 // Create the Y-axis.
+// The range is inversed, as the transform pivot is at the top of the axis line.
 var yScaleLinear = d3.scaleLinear()
                        .domain([
                          d3.min(data, function(d) { return d.y; }),
@@ -43,7 +44,7 @@ g.append('g')
     .attr('transform', 'translate(' + 0 + ',' + height / 2 + ')')
     .call(d3.axisBottom(xScaleLinear));
 
-// Draw the line
+// Draw the line segment.
 g.append("path")
     .datum(data)
     .attr("fill", "none")
