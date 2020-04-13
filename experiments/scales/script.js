@@ -104,7 +104,7 @@ function addPlot(parentDatum, i) {
       .data(domainData)
       .enter()
       .append("circle")
-      .attr('r', 2.0)
+      .attr('r', 1.0)
       .attr('cx', function(d) { return scaleX(d); })
       .attr('cy', function(d) { return parentDatum.value(d); })
       .style("fill",
