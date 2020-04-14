@@ -13,7 +13,7 @@ var svg = d3.select('#content')
               .attr('width', width + margin.left + margin.right)
               .attr('height', height + margin.top + margin.bottom);
 
-// Top-level transfor, to apply the margin(s).
+// Top-level transform, to apply the margin(s).
 var g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' +
                                               margin.top + ')');
 
@@ -25,8 +25,9 @@ var scaleX = d3.scaleLinear()
                  ])
                  .range([ 0, width ]);
 
+var axisYOffset = height * 2 / 3;
 g.append('g')
-    .attr('transform', 'translate(' + 0 + ',' + height / 2 + ')')
+    .attr('transform', 'translate(' + 0 + ',' + axisYOffset + ')')
     .call(d3.axisBottom(scaleX));
 
 // Height of the brush, in viewport space.
@@ -40,14 +41,19 @@ var brushStepSize = 0.5;
 var brushMinSize = 2.0;
 
 // Create the brush.
-g.append("g")
-    .attr("class", "brush")
-    .attr('transform',
-          'translate(' + 0 + ',' + (height / 2 - brushHeight) + ')')
-    .call(d3.brushX()
-              .extent([ [ 0, 0 ], [ width, brushHeight ] ])
-              .on("end", onBrushEnd));
+var brushGroup =
+    g.append("g")
+        .attr("class", "brush")
+        .attr('transform', 'translate(' + 0 + ',' +
+                               ((axisYOffset - brushHeight) + 2.0) + ')');
+brushGroup.call(d3.brushX()
+                    .extent([ [ 0, 0 ], [ width, brushHeight ] ])
+                    .on("end", onBrushEnd))
 
+brushGroup.append("g").attr("class", "brushAxis");
+
+// Utility function to fit a dimension of the brush extent to the prescribed
+// brushStepSize.
 function fitBrushStepSize(value) {
   return Math.round(value / brushStepSize) * brushStepSize;
 }
@@ -69,11 +75,22 @@ function onBrushEnd() {
   domainBrushExtent[0] = fitBrushStepSize(domainBrushExtent[0]);
   domainBrushExtent[1] = fitBrushStepSize(domainBrushExtent[1]);
 
+  // Brush extent be greater than min size.
   if (Math.abs(domainBrushExtent[1] - domainBrushExtent[0]) < brushMinSize) {
     domainBrushExtent[1] = domainBrushExtent[0] + brushMinSize;
   }
 
+  // Scaling for the subset of domain extent.
+  var brushScale = d3.scaleLinear()
+                       .domain([
+                         domainBrushExtent[0] - domainBrushExtent[0],
+                         domainBrushExtent[1] - domainBrushExtent[0]
+                       ])
+                       .range(domainBrushExtent.map(scaleX));
+
   d3.select(this).transition().call(d3.event.target.move,
                                     domainBrushExtent.map(scaleX));
+
+  d3.select("g .brushAxis").transition().call(d3.axisBottom(brushScale));
 }
 
