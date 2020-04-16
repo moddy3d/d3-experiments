@@ -70,37 +70,32 @@ g.selectAll('line .link')
     .attr('y2', function(d) { return d.target.y; });
 
 // Append a group for each node.
-g.selectAll('g.node')
-    .data(root.descendants())
-    .enter()
-    .append('g')
-    .classed('node', true)
-    .attr('transform',
-          function(d) { return 'translate(' + d.x + ',' + d.y + ')' });
+var nodes =
+    g.selectAll('g.node')
+        .data(root.descendants())
+        .enter()
+        .append('g')
+        .classed('node', true)
+        .attr('transform',
+              function(d) { return 'translate(' + d.x + ',' + d.y + ')' });
 
 // Append a rect for each node, serving as the background filling.
-g.selectAll('g.node').each(function(parentDatum, i) {
-  d3.select(this)
-      .append('rect')
-      .attr("fill", "white")
-      .attr("stroke", "#CCCCCC")
-      .attr("stroke-width", "1px")
-      .attr("rx", "1px")
-      .attr('width', parentDatum.data.name.length * 12)
-      .attr('height', "30")
-      .attr('transform', function() {
-        return `translate(-${this.getAttribute('width') / 2}` +
-               `, -${this.getAttribute('height') / 2})`;
-      });
-});
+nodes.append('rect')
+    .attr("fill", "white")
+    .attr("stroke", "#CCCCCC")
+    .attr("stroke-width", "1px")
+    .attr("rx", "1px")
+    .attr('width', function(d) { return d.data.name.length * 12; })
+    .attr('height', "30")
+    .attr('transform', function() {
+      return `translate(-${this.getAttribute('width') / 2}` +
+             `, -${this.getAttribute('height') / 2})`;
+    });
 
 // Append a text for each node, with the data name.
-g.selectAll('g.node').each(function(parentDatum, i) {
-  d3.select(this)
-      .append('text')
-      .attr('text-anchor', "middle")
-      .attr("dominant-baseline", "middle")
-      .attr("fill", "#000022")
-      .attr("font-family", "monospace")
-      .text(parentDatum.data.name);
-});
+nodes.append('text')
+    .attr('text-anchor', "middle")
+    .attr("dominant-baseline", "middle")
+    .attr("fill", "#000022")
+    .attr("font-family", "monospace")
+    .text(function(d) { return d.data.name });
