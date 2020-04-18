@@ -1,12 +1,18 @@
 // Timeline data set.
-var timelineData = [
-  {name : "Foo", start : 0, end : 20},
-  {name : "Bar", start : 25, end : 45},
-  {name : "Baz", start : 99, end : 120},
-];
+var startTime = 0;
+var stopTime = 100000;
+var timeStep = 1;
 
-var earliestTime = d3.min(timelineData, function(d) { return d.start; });
-var latestTime = d3.max(timelineData, function(d) { return d.end; });
+var timelineData = [];
+
+for (var currentTime = startTime, index = 0; currentTime < stopTime;
+     currentTime += timeStep * index, index += 1) {
+  timelineData.push({
+    name : "Entry_" + currentTime,
+    start : currentTime,
+    end : currentTime + (timeStep * index / 2)
+  });
+}
 
 // Create main SVG container.
 var margin = {left : 30, right : 30, top : 30, bottom : 30};
@@ -24,7 +30,7 @@ var rootGroup = svg.append('g').attr('transform', 'translate(' + margin.left +
 // Create the navigation X-axis scale mapping.
 // This maps the input time exntents to the width of the interior SVG container.
 var navigationScaleX =
-    d3.scaleLinear().domain([ earliestTime, latestTime ]).range([ 0, width ]);
+    d3.scaleLinear().domain([ startTime, stopTime ]).range([ 0, width ]);
 
 var navigationAxisOffset = height * 19 / 20;
 rootGroup.append('g')
@@ -64,7 +70,7 @@ var brushHeight = height / 10;
 var brushStepSize = 1;
 
 // Min size of the brush, in domain space.
-var brushMinSize = (latestTime - earliestTime) / 20;
+var brushMinSize = (stopTime - startTime) / 20;
 
 // Create the brush.
 var brushGroup =
